@@ -1,0 +1,21 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Vaadin frontend
+node_modules/
+frontend/generated/
+src/main/frontend/generated/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Variables y secretos locales
+.env
+application-local.properties
