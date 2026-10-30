@@ -35,7 +35,10 @@ class CitaMedicaServiceTest {
     void noDebePermitirDosCitasParaElMismoMedicoYHorario() {
         Medico medico = medico(2L, true);
         CitaMedica cita = cita(1L, medico, paciente(1L, true));
-        when(citaMedicaRepository.existsByMedicoIdAndFechaHora(2L, cita.getFechaHora()))
+        when(citaMedicaRepository.existsByMedicoIdAndFechaHoraAndEstadoIn(
+                org.mockito.ArgumentMatchers.eq(2L),
+                org.mockito.ArgumentMatchers.eq(cita.getFechaHora()),
+                org.mockito.ArgumentMatchers.any()))
                 .thenReturn(true);
 
         assertThrows(ReglaNegocioException.class, () -> citaMedicaService.guardar(cita));
@@ -46,7 +49,10 @@ class CitaMedicaServiceTest {
         Medico medico = medico(2L, true);
         Paciente paciente = paciente(1L, false);
         CitaMedica cita = cita(null, medico, paciente);
-        when(citaMedicaRepository.existsByMedicoIdAndFechaHora(2L, cita.getFechaHora()))
+        when(citaMedicaRepository.existsByMedicoIdAndFechaHoraAndEstadoIn(
+                org.mockito.ArgumentMatchers.eq(2L),
+                org.mockito.ArgumentMatchers.eq(cita.getFechaHora()),
+                org.mockito.ArgumentMatchers.any()))
                 .thenReturn(false);
         when(pacienteService.buscarPorId(1L)).thenReturn(paciente);
         when(medicoService.buscarPorId(2L)).thenReturn(medico);

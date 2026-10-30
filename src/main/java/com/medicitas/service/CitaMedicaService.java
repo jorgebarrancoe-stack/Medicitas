@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 
 @Service
@@ -109,8 +110,9 @@ public class CitaMedicaService {
             throw new ReglaNegocioException("La cita debe tener fecha y hora");
         }
 
-        boolean ocupada = citaMedicaRepository.existsByMedicoIdAndFechaHora(
-                cita.getMedico().getId(), cita.getFechaHora());
+        boolean ocupada = citaMedicaRepository.existsByMedicoIdAndFechaHoraAndEstadoIn(
+                cita.getMedico().getId(), cita.getFechaHora(),
+                EnumSet.of(EstadoCita.PROGRAMADA, EstadoCita.CONFIRMADA, EstadoCita.ATENDIDA));
         if (ocupada && (cita.getId() == null || !mismaCita(cita))) {
             throw new ReglaNegocioException("El medico ya tiene una cita en la fecha y hora indicadas");
         }

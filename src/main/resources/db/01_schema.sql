@@ -38,10 +38,12 @@ CREATE TABLE IF NOT EXISTS citas_medicas (
     CONSTRAINT citas_paciente_fk
         FOREIGN KEY (paciente_id) REFERENCES pacientes (id),
     CONSTRAINT citas_medico_fk
-        FOREIGN KEY (medico_id) REFERENCES medicos (id),
-    CONSTRAINT citas_medico_fecha_unica
-        UNIQUE (medico_id, fecha_hora)
+        FOREIGN KEY (medico_id) REFERENCES medicos (id)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_citas_medico_fecha_activas
+    ON citas_medicas (medico_id, fecha_hora)
+    WHERE estado IN ('PROGRAMADA', 'CONFIRMADA', 'ATENDIDA');
 
 CREATE INDEX IF NOT EXISTS idx_citas_paciente
     ON citas_medicas (paciente_id);
