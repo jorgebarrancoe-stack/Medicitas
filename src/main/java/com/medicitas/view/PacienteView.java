@@ -63,11 +63,16 @@ public class PacienteView extends VerticalLayout {
     }
 
     private void configurarFormulario() {
-        binder.bind(documento, Paciente::getDocumento, Paciente::setDocumento);
-        binder.bind(nombres, Paciente::getNombres, Paciente::setNombres);
-        binder.bind(apellidos, Paciente::getApellidos, Paciente::setApellidos);
-        binder.bind(fechaNacimiento, Paciente::getFechaNacimiento, Paciente::setFechaNacimiento);
-        binder.bind(telefono, Paciente::getTelefono, Paciente::setTelefono);
+        binder.forField(documento).asRequired("El documento es obligatorio")
+                .bind(Paciente::getDocumento, Paciente::setDocumento);
+        binder.forField(nombres).asRequired("Los nombres son obligatorios")
+                .bind(Paciente::getNombres, Paciente::setNombres);
+        binder.forField(apellidos).asRequired("Los apellidos son obligatorios")
+                .bind(Paciente::getApellidos, Paciente::setApellidos);
+        binder.forField(fechaNacimiento).asRequired("La fecha de nacimiento es obligatoria")
+                .bind(Paciente::getFechaNacimiento, Paciente::setFechaNacimiento);
+        binder.forField(telefono).asRequired("El telefono es obligatorio")
+                .bind(Paciente::getTelefono, Paciente::setTelefono);
         binder.bind(correo, Paciente::getCorreo, Paciente::setCorreo);
 
         Button guardar = new Button("Guardar", event -> guardar());

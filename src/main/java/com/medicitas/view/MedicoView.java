@@ -57,11 +57,14 @@ public class MedicoView extends VerticalLayout {
     }
 
     private void configurarFormulario() {
-        binder.bind(numeroTarjetaProfesional, Medico::getNumeroTarjetaProfesional,
-                Medico::setNumeroTarjetaProfesional);
-        binder.bind(nombres, Medico::getNombres, Medico::setNombres);
-        binder.bind(apellidos, Medico::getApellidos, Medico::setApellidos);
-        binder.bind(especialidad, Medico::getEspecialidad, Medico::setEspecialidad);
+        binder.forField(numeroTarjetaProfesional).asRequired("La tarjeta profesional es obligatoria")
+                .bind(Medico::getNumeroTarjetaProfesional, Medico::setNumeroTarjetaProfesional);
+        binder.forField(nombres).asRequired("Los nombres son obligatorios")
+                .bind(Medico::getNombres, Medico::setNombres);
+        binder.forField(apellidos).asRequired("Los apellidos son obligatorios")
+                .bind(Medico::getApellidos, Medico::setApellidos);
+        binder.forField(especialidad).asRequired("La especialidad es obligatoria")
+                .bind(Medico::getEspecialidad, Medico::setEspecialidad);
         binder.bind(correo, Medico::getCorreo, Medico::setCorreo);
 
         Button guardar = new Button("Guardar", event -> guardar());
