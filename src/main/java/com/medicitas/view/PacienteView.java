@@ -80,7 +80,7 @@ public class PacienteView extends VerticalLayout {
                 .bind(Paciente::getTelefono, Paciente::setTelefono);
         binder.forField(correo)
                 .withValidator(valor -> valor == null || valor.isBlank() || valor.matches(
-                        "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"),
+                        "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"),   // error en esta linea 
                         "El correo no tiene un formato valido")
                 .bind(Paciente::getCorreo, Paciente::setCorreo);
         correo.setErrorMessage("El correo no tiene un formato valido");
