@@ -20,6 +20,8 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.data.binder.Binder;
 
+import java.time.LocalDate;
+
 @Route("pacientes")
 @PageTitle("Pacientes | Medicitas")
 public class PacienteView extends VerticalLayout {
@@ -40,6 +42,7 @@ public class PacienteView extends VerticalLayout {
         setSizeFull();
         configurarGrid();
         configurarFormulario();
+        binder.setBean(new Paciente());
         cargarPacientes();
     }
 
@@ -70,10 +73,17 @@ public class PacienteView extends VerticalLayout {
         binder.forField(apellidos).asRequired("Los apellidos son obligatorios")
                 .bind(Paciente::getApellidos, Paciente::setApellidos);
         binder.forField(fechaNacimiento).asRequired("La fecha de nacimiento es obligatoria")
+                .withValidator(fecha -> fecha != null && fecha.isBefore(LocalDate.now()),
+                        "La fecha de nacimiento debe ser anterior a hoy")
                 .bind(Paciente::getFechaNacimiento, Paciente::setFechaNacimiento);
         binder.forField(telefono).asRequired("El telefono es obligatorio")
                 .bind(Paciente::getTelefono, Paciente::setTelefono);
-        binder.bind(correo, Paciente::getCorreo, Paciente::setCorreo);
+        binder.forField(correo)
+                .withValidator(valor -> valor == null || valor.isBlank() || valor.matches(
+                        "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"),
+                        "El correo no tiene un formato valido")
+                .bind(Paciente::getCorreo, Paciente::setCorreo);
+        correo.setErrorMessage("El correo no tiene un formato valido");
 
         Button guardar = new Button("Guardar", event -> guardar());
         guardar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -112,7 +122,7 @@ public class PacienteView extends VerticalLayout {
             limpiarFormulario();
             cargarPacientes();
         } catch (RuntimeException exception) {
-            notificar(exception.getMessage(), true);
+            notificar(mensajeError(exception), true);
         }
     }
 
@@ -128,7 +138,7 @@ public class PacienteView extends VerticalLayout {
             limpiarFormulario();
             cargarPacientes();
         } catch (RuntimeException exception) {
-            notificar(exception.getMessage(), true);
+            notificar(mensajeError(exception), true);
         }
     }
 
@@ -149,5 +159,12 @@ public class PacienteView extends VerticalLayout {
         } else {
             notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         }
+    }
+
+    private String mensajeError(RuntimeException exception) {
+        if (exception.getMessage() == null || exception.getMessage().isBlank()) {
+            return "No fue posible completar la operacion. Revisa los datos e intenta nuevamente";
+        }
+        return exception.getMessage();
     }
 }

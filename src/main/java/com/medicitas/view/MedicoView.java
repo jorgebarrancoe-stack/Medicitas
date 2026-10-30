@@ -38,6 +38,7 @@ public class MedicoView extends VerticalLayout {
         setSizeFull();
         configurarGrid();
         configurarFormulario();
+        binder.setBean(new Medico());
         cargarMedicos();
     }
 
