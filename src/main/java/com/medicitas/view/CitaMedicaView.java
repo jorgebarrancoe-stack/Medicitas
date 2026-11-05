@@ -25,16 +25,22 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Route("citas")
 @PageTitle("Citas medicas | Medicitas")
 public class CitaMedicaView extends VerticalLayout {
+
+    private static final DateTimeFormatter FORMATO_FECHA_HORA =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final CitaMedicaController citaController;
     private final PacienteController pacienteController;
     private final MedicoController medicoController;
     private final Grid<CitaMedica> grid = new Grid<>(CitaMedica.class, false);
     private final Binder<CitaMedica> binder = new Binder<>(CitaMedica.class);
-    private final DateTimePicker fechaHora = new DateTimePicker("Fecha y hora");
+    private final DateTimePicker fechaHora = new DateTimePicker("Fecha y hora de la cita");
     private final TextArea motivo = new TextArea("Motivo");
     private final ComboBox<EstadoCita> estado = new ComboBox<>("Estado");
     private final ComboBox<Paciente> paciente = new ComboBox<>("Paciente");
@@ -58,7 +64,8 @@ public class CitaMedicaView extends VerticalLayout {
                         ? ""
                         : idTransaccionCorto(cita.getIdTransaccion().toString()))
                 .setHeader("Transaccion").setAutoWidth(true);
-        grid.addColumn(CitaMedica::getFechaHora).setHeader("Fecha y hora").setAutoWidth(true);
+        grid.addColumn(cita -> formatearFechaHora(cita.getFechaHora()))
+                .setHeader("Fecha y hora").setAutoWidth(true);
         grid.addColumn(cita -> nombrePaciente(cita.getPaciente()))
                 .setHeader("Paciente").setAutoWidth(true);
         grid.addColumn(cita -> nombreMedico(cita.getMedico()))
@@ -204,6 +211,10 @@ public class CitaMedicaView extends VerticalLayout {
         return idTransaccion.length() <= 8
                 ? idTransaccion
                 : idTransaccion.substring(0, 8) + "...";
+    }
+
+    private String formatearFechaHora(LocalDateTime fechaHora) {
+        return fechaHora == null ? "" : fechaHora.format(FORMATO_FECHA_HORA);
     }
 
     private void notificar(String mensaje, boolean error) {
