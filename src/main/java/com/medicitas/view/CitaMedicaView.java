@@ -56,7 +56,7 @@ public class CitaMedicaView extends VerticalLayout {
     private void configurarGrid() {
         grid.addColumn(cita -> cita.getIdTransaccion() == null
                         ? ""
-                        : cita.getIdTransaccion().toString())
+                        : idTransaccionCorto(cita.getIdTransaccion().toString()))
                 .setHeader("Transaccion").setAutoWidth(true);
         grid.addColumn(CitaMedica::getFechaHora).setHeader("Fecha y hora").setAutoWidth(true);
         grid.addColumn(cita -> nombrePaciente(cita.getPaciente()))
@@ -198,6 +198,12 @@ public class CitaMedicaView extends VerticalLayout {
             return "";
         }
         return medico.getNombres() + " " + medico.getApellidos() + " - " + medico.getEspecialidad();
+    }
+
+    private String idTransaccionCorto(String idTransaccion) {
+        return idTransaccion.length() <= 8
+                ? idTransaccion
+                : idTransaccion.substring(0, 8) + "...";
     }
 
     private void notificar(String mensaje, boolean error) {
