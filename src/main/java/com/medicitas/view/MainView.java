@@ -6,8 +6,10 @@ import com.medicitas.controller.PacienteController;
 import com.medicitas.model.Usuario;
 import com.medicitas.repository.UsuarioRepository;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
@@ -85,12 +87,42 @@ public class MainView extends VerticalLayout {
         marca.add(simbolo, identidad);
 
         boolean doctor = esDoctor();
-        Button citas = new Button(doctor ? "Mi agenda" : "Agendar cita", VaadinIcon.CALENDAR.create(),
+        HorizontalLayout navegacion = new HorizontalLayout();
+        navegacion.setSpacing(false);
+        if (doctor) {
+            navegacion.add(crearBotonNavegacion("Mi agenda", "mi-agenda", VaadinIcon.CALENDAR));
+        } else {
+            navegacion.add(
+                    crearBotonNavegacion("Pacientes", "pacientes", VaadinIcon.USER),
+                    crearBotonNavegacion("Medicos", "medicos", VaadinIcon.STETHOSCOPE),
+                    crearBotonNavegacion("Citas", "citas", VaadinIcon.CALENDAR));
+        }
+
+        Button agendar = new Button(doctor ? "Mi agenda" : "Agendar cita", VaadinIcon.CALENDAR.create(),
                 event -> UI.getCurrent().navigate(doctor ? "mi-agenda" : "citas"));
-        citas.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        citas.getStyle().set("white-space", "nowrap").set("font-weight", "700");
-        barra.add(marca, citas);
+        agendar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        agendar.getStyle().set("white-space", "nowrap").set("font-weight", "700");
+
+        Avatar avatar = new Avatar(nombreUsuario());
+        avatar.setColorIndex(2);
+        avatar.getStyle().set("cursor", "pointer");
+        ContextMenu menuUsuario = new ContextMenu();
+        menuUsuario.setTarget(avatar);
+        menuUsuario.setOpenOnClick(true);
+        menuUsuario.addItem("Cerrar sesion", event -> UI.getCurrent().getPage().setLocation("/logout"));
+
+        HorizontalLayout usuario = new HorizontalLayout(agendar, avatar);
+        usuario.setAlignItems(Alignment.CENTER);
+        usuario.setSpacing(true);
+        barra.add(marca, navegacion, usuario);
         return barra;
+    }
+
+    private Button crearBotonNavegacion(String texto, String ruta, VaadinIcon icono) {
+        Button boton = new Button(texto, icono.create(), event -> UI.getCurrent().navigate(ruta));
+        boton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        boton.getStyle().set("font-weight", "600");
+        return boton;
     }
 
     private VerticalLayout crearContenido() {

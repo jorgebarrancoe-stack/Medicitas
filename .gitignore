@@ -12,6 +12,7 @@ node_modules/
 frontend/generated/
 src/main/frontend/
 src/main/frontend/generated/
+.vaadin-node-tasks.lock
 
 # Sistema operativo
 .DS_Store
