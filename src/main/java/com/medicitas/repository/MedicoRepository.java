@@ -7,5 +7,7 @@ import java.util.Optional;
 
 public interface MedicoRepository extends JpaRepository<Medico, Long> {
 
+    long countByActivoTrue();
+
     Optional<Medico> findByNumeroTarjetaProfesional(String numeroTarjetaProfesional);
 }

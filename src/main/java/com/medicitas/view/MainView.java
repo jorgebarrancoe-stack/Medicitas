@@ -3,6 +3,8 @@ package com.medicitas.view;
 import com.medicitas.controller.CitaMedicaController;
 import com.medicitas.controller.MedicoController;
 import com.medicitas.controller.PacienteController;
+import com.medicitas.model.Usuario;
+import com.medicitas.repository.UsuarioRepository;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -26,13 +28,16 @@ public class MainView extends VerticalLayout {
     private final PacienteController pacienteController;
     private final MedicoController medicoController;
     private final CitaMedicaController citaController;
+    private final UsuarioRepository usuarioRepository;
 
     public MainView(PacienteController pacienteController,
                     MedicoController medicoController,
-                    CitaMedicaController citaController) {
+                    CitaMedicaController citaController,
+                    UsuarioRepository usuarioRepository) {
         this.pacienteController = pacienteController;
         this.medicoController = medicoController;
         this.citaController = citaController;
+        this.usuarioRepository = usuarioRepository;
 
         setSizeFull();
         setPadding(false);
@@ -114,9 +119,12 @@ public class MainView extends VerticalLayout {
                 .set("font-weight", "800")
                 .set("letter-spacing", "2px")
                 .set("color", "#0e8f88");
-        H1 titulo = new H1("Una atencion mas clara empieza aqui");
+        boolean doctor = esDoctor();
+        H1 titulo = new H1("Hola, " + nombreUsuario());
         titulo.getStyle().set("max-width", "560px").set("margin", "12px 0 8px").set("font-size", "clamp(28px, 4vw, 48px)");
-        Paragraph descripcion = new Paragraph("Organiza pacientes, profesionales y citas desde un solo lugar.");
+        Paragraph descripcion = new Paragraph(doctor
+                ? "Esta es tu agenda de atencion. Consulta tus citas y horarios del dia."
+                : "Organiza pacientes, profesionales y citas desde un solo lugar.");
         descripcion.getStyle().set("margin", "0").set("color", "#496576").set("font-size", "16px");
         heroTexto.add(etiqueta, titulo, descripcion);
 
@@ -130,6 +138,8 @@ public class MainView extends VerticalLayout {
         resumenTitulo.getStyle().set("margin", "34px 0 4px").set("font-size", "22px");
         Paragraph resumenTexto = new Paragraph("Informacion actual de tu agenda medica");
         resumenTexto.getStyle().set("margin", "0 0 14px").set("color", "#6b7689");
+
+        Div agendaDestacada = crearAgendaDestacada(doctor);
 
         HorizontalLayout metricas = new HorizontalLayout(
                 crearMetrica("Pacientes", pacienteController.listar().size(), "Registrados", "#e7f6f3", "#0e8f88"),
@@ -171,8 +181,48 @@ public class MainView extends VerticalLayout {
         estadoTexto.getStyle().set("color", "#287152").set("font-weight", "600");
         estado.add(punto, estadoTexto);
 
-        contenido.add(hero, resumenTitulo, resumenTexto, metricas, accionesTitulo, acciones, estado);
+        contenido.add(hero, agendaDestacada, resumenTitulo, resumenTexto, metricas,
+                accionesTitulo, acciones, estado);
         return contenido;
+    }
+
+    private Div crearAgendaDestacada(boolean doctor) {
+        Div tarjeta = new Div();
+        tarjeta.getStyle()
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "space-between")
+                .set("flex-wrap", "wrap")
+                .set("gap", "18px")
+                .set("margin-top", "28px")
+                .set("padding", "24px 28px")
+                .set("border-radius", "20px")
+                .set("background", doctor ? "#fffaf0" : "#f0fbfa")
+                .set("border", doctor ? "1px solid #f3dfb8" : "1px solid #c9ebe6");
+
+        Div texto = new Div();
+        Span etiqueta = new Span(doctor ? "PRIORIDAD DEL DIA" : "AGENDA CLINICA");
+        etiqueta.getStyle()
+                .set("display", "block")
+                .set("font-size", "11px")
+                .set("font-weight", "800")
+                .set("letter-spacing", "1.6px")
+                .set("color", doctor ? "#b57418" : "#0e8f88");
+        H2 titulo = new H2(doctor ? "Revisa tu agenda antes de atender" : "Agenda medica centralizada");
+        titulo.getStyle().set("margin", "7px 0 4px").set("font-size", "22px");
+        Paragraph detalle = new Paragraph(doctor
+                ? "Consulta tus pacientes, horarios y estados de atencion en un solo lugar."
+                : "Organiza las citas y los horarios de todos los profesionales.");
+        detalle.getStyle().set("margin", "0").set("color", "#657386");
+        texto.add(etiqueta, titulo, detalle);
+
+        Button abrir = new Button(doctor ? "Abrir mi agenda" : "Abrir agenda",
+                VaadinIcon.CALENDAR.create(),
+                event -> UI.getCurrent().navigate(doctor ? "mi-agenda" : "citas"));
+        abrir.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        abrir.getStyle().set("white-space", "nowrap").set("font-weight", "700");
+        tarjeta.add(texto, abrir);
+        return tarjeta;
     }
 
     private Div crearMetrica(String titulo, int valor, String detalle, String fondo, String color) {
@@ -216,6 +266,18 @@ public class MainView extends VerticalLayout {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
+    }
+
+    private String nombreUsuario() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getName().equals("anonymousUser")) {
+            return "equipo GoodDentis";
+        }
+
+        return usuarioRepository.findByUsername(authentication.getName())
+                .map(Usuario::getNombre)
+                .orElse(authentication.getName());
     }
 
 }

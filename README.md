@@ -40,6 +40,16 @@ Después abrir `http://localhost:8080`. Este perfil usa una base de datos en
 memoria y pierde los datos al detener la aplicación; PostgreSQL sigue siendo
 la base de datos oficial del proyecto.
 
+## Acceso inicial
+
+Al iniciar por primera vez se crean los siguientes usuarios de demostracion:
+
+- Recepcion: usuario `recepcion`, contrasena `recepcion123`.
+- Doctores: usuarios `doctor1` a `doctor5`, contrasena `doctor123`.
+
+Las contrasenas iniciales pueden cambiarse con `ADMIN_INITIAL_PASSWORD` y
+`DOCTOR_INITIAL_PASSWORD`. No deben compartirse ni utilizarse en produccion.
+
 ## Ejecutar pruebas
 
 Se recomienda usar Java 21 o una version compatible con la version de Vaadin

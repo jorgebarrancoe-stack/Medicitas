@@ -19,6 +19,10 @@ public class MedicoController {
         return medicoService.guardar(medico);
     }
 
+    public Medico guardar(Medico medico, String username, String password) {
+        return medicoService.guardar(medico, username, password);
+    }
+
     public List<Medico> listar() {
         return medicoService.listar();
     }

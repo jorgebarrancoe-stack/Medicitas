@@ -11,6 +11,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -33,6 +34,8 @@ public class MedicoView extends VerticalLayout {
     private final TextField apellidos = new TextField("Apellidos");
     private final TextField especialidad = new TextField("Especialidad");
     private final EmailField correo = new EmailField("Correo");
+    private final TextField username = new TextField("Usuario de acceso (nuevo)");
+    private final PasswordField password = new PasswordField("Contrasena de acceso (nuevo)");
     private Medico medicoSeleccionado;
 
     public MedicoView(MedicoController medicoController) {
@@ -55,6 +58,8 @@ public class MedicoView extends VerticalLayout {
         grid.setSizeFull();
         grid.asSingleSelect().addValueChangeListener(event -> {
             medicoSeleccionado = event.getValue();
+            username.clear();
+            password.clear();
             binder.setBean(medicoSeleccionado == null ? new Medico() : medicoSeleccionado);
         });
     }
@@ -77,7 +82,7 @@ public class MedicoView extends VerticalLayout {
         eliminar.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
         FormLayout formulario = new FormLayout(numeroTarjetaProfesional, nombres, apellidos,
-                especialidad, correo);
+                especialidad, correo, username, password);
         HorizontalLayout acciones = new HorizontalLayout(guardar, limpiar, eliminar);
         VerticalLayout panel = new VerticalLayout(new H2("Datos del medico"), formulario, acciones);
         panel.setWidth("360px");
@@ -99,7 +104,11 @@ public class MedicoView extends VerticalLayout {
         try {
             Medico formulario = binder.getBean();
             if (medicoSeleccionado == null) {
-                medicoController.guardar(formulario);
+                if (username.isEmpty() || password.isEmpty()) {
+                    notificar("El usuario y la contrasena son obligatorios para un nuevo medico", true);
+                    return;
+                }
+                medicoController.guardar(formulario, username.getValue(), password.getValue());
             } else {
                 medicoController.actualizar(medicoSeleccionado.getId(), formulario);
             }
@@ -130,6 +139,8 @@ public class MedicoView extends VerticalLayout {
     private void limpiarFormulario() {
         medicoSeleccionado = null;
         grid.asSingleSelect().clear();
+        username.clear();
+        password.clear();
         binder.setBean(new Medico());
     }
 
