@@ -23,6 +23,10 @@ public class CitaMedicaController {
         return citaMedicaService.listar();
     }
 
+    public long contar() {
+        return citaMedicaService.contar();
+    }
+
     public List<CitaMedica> listarPorMedico(Long medicoId) {
         return citaMedicaService.listarPorMedico(medicoId);
     }

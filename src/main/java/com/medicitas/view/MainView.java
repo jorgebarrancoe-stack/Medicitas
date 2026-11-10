@@ -54,6 +54,7 @@ public class MainView extends VerticalLayout {
 
     private Div crearBarraSuperior() {
         Div barra = new Div();
+        barra.setWidthFull();
         barra.getStyle()
                 .set("display", "flex")
                 .set("align-items", "center")
@@ -61,6 +62,7 @@ public class MainView extends VerticalLayout {
                 .set("flex-wrap", "wrap")
                 .set("gap", "16px")
                 .set("padding", "18px 6vw")
+                .set("box-sizing", "border-box")
                 .set("background", "#ffffff")
                 .set("border-bottom", "1px solid #e7ebf2");
 
@@ -89,6 +91,7 @@ public class MainView extends VerticalLayout {
         boolean doctor = esDoctor();
         HorizontalLayout navegacion = new HorizontalLayout();
         navegacion.setSpacing(false);
+        navegacion.getStyle().set("gap", "14px");
         if (doctor) {
             navegacion.add(crearBotonNavegacion("Mi agenda", "mi-agenda", VaadinIcon.CALENDAR));
         } else {
@@ -97,6 +100,9 @@ public class MainView extends VerticalLayout {
                     crearBotonNavegacion("Medicos", "medicos", VaadinIcon.STETHOSCOPE),
                     crearBotonNavegacion("Citas", "citas", VaadinIcon.CALENDAR));
         }
+        navegacion.getStyle()
+                .set("flex", "1")
+                .set("justify-content", "center");
 
         Button agendar = new Button(doctor ? "Mi agenda" : "Agendar cita", VaadinIcon.CALENDAR.create(),
                 event -> UI.getCurrent().navigate(doctor ? "mi-agenda" : "citas"));
@@ -164,6 +170,7 @@ public class MainView extends VerticalLayout {
                 event -> UI.getCurrent().navigate(PacienteView.class));
         registrar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         registrar.getStyle().set("font-weight", "700");
+        registrar.setVisible(!doctor);
         hero.add(heroTexto, registrar);
 
         H2 resumenTitulo = new H2("Resumen del sistema");
@@ -174,9 +181,9 @@ public class MainView extends VerticalLayout {
         Div agendaDestacada = crearAgendaDestacada(doctor);
 
         HorizontalLayout metricas = new HorizontalLayout(
-                crearMetrica("Pacientes", pacienteController.listar().size(), "Registrados", "#e7f6f3", "#0e8f88"),
-                crearMetrica("Medicos", medicoController.listar().size(), "Profesionales", "#fff2df", "#c67819"),
-                crearMetrica("Citas", citaController.listar().size(), "En la agenda", "#ece9ff", "#6554c0"));
+                crearMetrica("Pacientes", (int) pacienteController.contar(), "Registrados", "#e7f6f3", "#0e8f88"),
+                crearMetrica("Medicos", (int) medicoController.contar(), "Profesionales", "#fff2df", "#c67819"),
+                crearMetrica("Citas", (int) citaController.contar(), "En la agenda", "#ece9ff", "#6554c0"));
         metricas.setWidthFull();
         metricas.setSpacing(true);
         metricas.getStyle().set("flex-wrap", "wrap");
@@ -195,7 +202,7 @@ public class MainView extends VerticalLayout {
                         CitaMedicaView.class));
         acciones.setWidthFull();
         acciones.setSpacing(true);
-        acciones.getStyle().set("flex-wrap", "wrap");
+        acciones.getStyle().set("flex-wrap", "wrap").set("gap", "16px");
 
         Div estado = new Div();
         estado.getStyle()
@@ -276,21 +283,35 @@ public class MainView extends VerticalLayout {
         return tarjeta;
     }
 
-    private Button crearAccion(String titulo, String detalle, VaadinIcon icono,
-                               Class<? extends com.vaadin.flow.component.Component> vista) {
-        Button accion = new Button(titulo + "\n" + detalle, icono.create(),
-                event -> UI.getCurrent().navigate(vista));
-        accion.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+    private Div crearAccion(String titulo, String detalle, VaadinIcon icono,
+                            Class<? extends com.vaadin.flow.component.Component> vista) {
+        Div accion = new Div();
+        Div texto = new Div();
+        texto.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "5px");
+        Span nombre = new Span(titulo);
+        nombre.getStyle().set("font-weight", "800").set("font-size", "15px").set("color", "#172033");
+        Span descripcion = new Span(detalle);
+        descripcion.getStyle().set("font-size", "12px").set("color", "#718096");
+        texto.add(nombre, descripcion);
+
+        Span flecha = new Span("->");
+        flecha.getStyle().set("margin-left", "auto").set("color", "#0e8f88").set("font-weight", "800");
+        accion.add(icono.create(), texto, flecha);
+        accion.addClickListener(event -> UI.getCurrent().navigate(vista));
         accion.getStyle()
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("gap", "13px")
                 .set("flex", "1")
-                .set("height", "82px")
+                .set("min-width", "230px")
+                .set("min-height", "88px")
                 .set("justify-content", "flex-start")
                 .set("text-align", "left")
-                .set("white-space", "pre-line")
                 .set("padding", "18px")
                 .set("border", "1px solid #e2e7ef")
                 .set("border-radius", "16px")
-                .set("background", "white");
+                .set("background", "white")
+                .set("cursor", "pointer");
         return accion;
     }
 

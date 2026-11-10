@@ -5,6 +5,7 @@ import com.medicitas.exception.RecursoNoEncontradoException;
 import com.medicitas.model.Medico;
 import com.medicitas.model.RolUsuario;
 import com.medicitas.model.Usuario;
+import com.medicitas.repository.CitaMedicaRepository;
 import com.medicitas.repository.MedicoRepository;
 import com.medicitas.repository.UsuarioRepository;
 import org.slf4j.Logger;
@@ -23,13 +24,16 @@ public class MedicoService {
     private final MedicoRepository medicoRepository;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CitaMedicaRepository citaMedicaRepository;
 
     public MedicoService(MedicoRepository medicoRepository,
                          UsuarioRepository usuarioRepository,
-                         PasswordEncoder passwordEncoder) {
+                         PasswordEncoder passwordEncoder,
+                         CitaMedicaRepository citaMedicaRepository) {
         this.medicoRepository = medicoRepository;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.citaMedicaRepository = citaMedicaRepository;
     }
 
     @Transactional
@@ -39,7 +43,7 @@ public class MedicoService {
 
     @Transactional
     public Medico guardar(Medico medico, String username, String password) {
-        if (medicoRepository.countByActivoTrue() >= 5) {
+        if (medico.isActivo() && medicoRepository.countByActivoTrue() >= 5) {
             throw new ReglaNegocioException("GoodDentis permite maximo 5 medicos activos");
         }
 
@@ -69,6 +73,16 @@ public class MedicoService {
     }
 
     @Transactional(readOnly = true)
+    public List<Medico> listarActivos() {
+        return medicoRepository.findByActivoTrue();
+    }
+
+    @Transactional(readOnly = true)
+    public long contar() {
+        return medicoRepository.count();
+    }
+
+    @Transactional(readOnly = true)
     public Medico buscarPorId(Long id) {
         return medicoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Medico no encontrado: " + id));
@@ -77,6 +91,9 @@ public class MedicoService {
     @Transactional
     public Medico actualizar(Long id, Medico datos) {
         Medico medico = buscarPorId(id);
+        if (datos.isActivo() && !medico.isActivo() && medicoRepository.countByActivoTrue() >= 5) {
+            throw new ReglaNegocioException("GoodDentis permite maximo 5 medicos activos");
+        }
         medicoRepository.findByNumeroTarjetaProfesional(datos.getNumeroTarjetaProfesional())
                 .filter(otro -> !otro.getId().equals(id))
                 .ifPresent(otro -> {
@@ -98,6 +115,9 @@ public class MedicoService {
     @Transactional
     public void eliminar(Long id) {
         Medico medico = buscarPorId(id);
+        if (citaMedicaRepository.existsByMedicoId(id)) {
+            throw new ReglaNegocioException("No se puede eliminar porque tiene citas; desactivalo");
+        }
         usuarioRepository.findByMedicoId(id).ifPresent(usuario -> {
             usuario.setActivo(false);
             usuario.setMedico(null);

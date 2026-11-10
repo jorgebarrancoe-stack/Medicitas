@@ -3,6 +3,7 @@ package com.medicitas.service;
 import com.medicitas.exception.ReglaNegocioException;
 import com.medicitas.exception.RecursoNoEncontradoException;
 import com.medicitas.model.Paciente;
+import com.medicitas.repository.CitaMedicaRepository;
 import com.medicitas.repository.PacienteRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +18,12 @@ public class PacienteService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PacienteService.class);
 
     private final PacienteRepository pacienteRepository;
+    private final CitaMedicaRepository citaMedicaRepository;
 
-    public PacienteService(PacienteRepository pacienteRepository) {
+    public PacienteService(PacienteRepository pacienteRepository,
+                           CitaMedicaRepository citaMedicaRepository) {
         this.pacienteRepository = pacienteRepository;
+        this.citaMedicaRepository = citaMedicaRepository;
     }
 
     @Transactional
@@ -37,6 +41,16 @@ public class PacienteService {
     @Transactional(readOnly = true)
     public List<Paciente> listar() {
         return pacienteRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Paciente> listarActivos() {
+        return pacienteRepository.findByActivoTrue();
+    }
+
+    @Transactional(readOnly = true)
+    public long contar() {
+        return pacienteRepository.count();
     }
 
     @Transactional(readOnly = true)
@@ -70,6 +84,9 @@ public class PacienteService {
     @Transactional
     public void eliminar(Long id) {
         Paciente paciente = buscarPorId(id);
+        if (citaMedicaRepository.existsByPacienteId(id)) {
+            throw new ReglaNegocioException("No se puede eliminar porque tiene citas; desactivalo");
+        }
         pacienteRepository.delete(paciente);
         LOGGER.info("Paciente eliminado: id={}", id);
     }

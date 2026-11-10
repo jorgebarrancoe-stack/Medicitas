@@ -20,6 +20,9 @@ import java.util.List;
 public class CitaMedicaService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CitaMedicaService.class);
+    private static final int DURACION_MINUTOS = 30;
+    private static final EnumSet<EstadoCita> ESTADOS_ACTIVOS =
+            EnumSet.of(EstadoCita.PROGRAMADA, EstadoCita.CONFIRMADA, EstadoCita.ATENDIDA);
 
     private final CitaMedicaRepository citaMedicaRepository;
     private final PacienteService pacienteService;
@@ -35,6 +38,12 @@ public class CitaMedicaService {
 
     @Transactional
     public CitaMedica guardar(CitaMedica cita) {
+        if (cita.getFechaHora() == null) {
+            throw new ReglaNegocioException("La cita debe tener fecha y hora");
+        }
+        if (cita.getFechaHora().isBefore(LocalDateTime.now())) {
+            throw new ReglaNegocioException("La cita debe ser en una fecha futura");
+        }
         validarDisponibilidad(cita);
         validarParticipantes(cita);
 
@@ -50,6 +59,11 @@ public class CitaMedicaService {
     }
 
     @Transactional(readOnly = true)
+    public long contar() {
+        return citaMedicaRepository.count();
+    }
+
+    @Transactional(readOnly = true)
     public CitaMedica buscarPorId(Long id) {
         return citaMedicaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cita no encontrada: " + id));
@@ -58,6 +72,7 @@ public class CitaMedicaService {
     @Transactional
     public CitaMedica actualizar(Long id, CitaMedica datos) {
         CitaMedica cita = buscarPorId(id);
+        validarCambioEstado(cita.getEstado(), datos.getEstado());
         datos.setId(id);
         validarDisponibilidad(datos);
         validarParticipantes(datos);
@@ -98,31 +113,61 @@ public class CitaMedicaService {
     @Transactional
     public void eliminar(Long id) {
         CitaMedica cita = buscarPorId(id);
+        if (cita.getEstado() == EstadoCita.ATENDIDA) {
+            throw new ReglaNegocioException("Una cita atendida no puede eliminarse");
+        }
         citaMedicaRepository.delete(cita);
         LOGGER.info("Cita eliminada: id={}", id);
+    }
+
+    private void validarCambioEstado(EstadoCita actual, EstadoCita nuevo) {
+        if (nuevo == null) {
+            throw new ReglaNegocioException("El estado es obligatorio");
+        }
+        if ((actual == EstadoCita.CANCELADA || actual == EstadoCita.ATENDIDA)
+                && nuevo == EstadoCita.PROGRAMADA) {
+            throw new ReglaNegocioException("Una cita cancelada o atendida no puede volver a programada");
+        }
     }
 
     private void validarDisponibilidad(CitaMedica cita) {
         if (cita.getMedico() == null || cita.getMedico().getId() == null) {
             throw new ReglaNegocioException("La cita debe tener un medico valido");
         }
+        if (cita.getPaciente() == null || cita.getPaciente().getId() == null) {
+            throw new ReglaNegocioException("La cita debe tener un paciente valido");
+        }
         if (cita.getFechaHora() == null) {
             throw new ReglaNegocioException("La cita debe tener fecha y hora");
         }
 
-        boolean ocupada = citaMedicaRepository.existsByMedicoIdAndFechaHoraAndEstadoIn(
-                cita.getMedico().getId(), cita.getFechaHora(),
-                EnumSet.of(EstadoCita.PROGRAMADA, EstadoCita.CONFIRMADA, EstadoCita.ATENDIDA));
-        if (ocupada && (cita.getId() == null || !mismaCita(cita))) {
-            throw new ReglaNegocioException("El medico ya tiene una cita en la fecha y hora indicadas");
+        LocalDateTime inicio = cita.getFechaHora();
+        LocalDateTime fin = inicio.plusMinutes(DURACION_MINUTOS);
+
+        boolean medicoOcupado = citaMedicaRepository
+                .findByMedicoIdAndFechaHoraBetweenAndEstadoIn(
+                        cita.getMedico().getId(), inicio.minusMinutes(DURACION_MINUTOS - 1), fin.minusMinutes(1), ESTADOS_ACTIVOS)
+                .stream().anyMatch(existente -> esCruce(existente, cita, fin));
+        if (medicoOcupado) {
+            throw new ReglaNegocioException("El medico ya tiene una cita en el horario indicado");
+        }
+
+        boolean pacienteOcupado = citaMedicaRepository
+                .findByPacienteIdAndFechaHoraBetweenAndEstadoIn(
+                        cita.getPaciente().getId(), inicio.minusMinutes(DURACION_MINUTOS - 1), fin.minusMinutes(1), ESTADOS_ACTIVOS)
+                .stream().anyMatch(existente -> esCruce(existente, cita, fin));
+        if (pacienteOcupado) {
+            throw new ReglaNegocioException("El paciente ya tiene una cita en el horario indicado");
         }
     }
 
-    private boolean mismaCita(CitaMedica cita) {
-        return citaMedicaRepository.findById(cita.getId())
-                .map(actual -> actual.getMedico().getId().equals(cita.getMedico().getId())
-                        && actual.getFechaHora().equals(cita.getFechaHora()))
-                .orElse(false);
+    private boolean esCruce(CitaMedica existente, CitaMedica cita, LocalDateTime finNueva) {
+        if (cita.getId() != null && cita.getId().equals(existente.getId())) {
+            return false;
+        }
+        LocalDateTime inicioExistente = existente.getFechaHora();
+        LocalDateTime finExistente = inicioExistente.plusMinutes(DURACION_MINUTOS);
+        return cita.getFechaHora().isBefore(finExistente) && inicioExistente.isBefore(finNueva);
     }
 
     private void validarParticipantes(CitaMedica cita) {

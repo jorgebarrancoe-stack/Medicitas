@@ -40,6 +40,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         idioma.getErrorMessage().setTitle("Datos incorrectos");
         idioma.getErrorMessage().setMessage("Verifica tu usuario y contrasena");
         loginForm.setI18n(idioma);
+        loginForm.setForgotPasswordButtonVisible(false);
         loginForm.setAction("login");
     }
 

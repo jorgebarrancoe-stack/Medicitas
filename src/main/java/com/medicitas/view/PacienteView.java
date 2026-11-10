@@ -4,6 +4,7 @@ import com.medicitas.controller.PacienteController;
 import com.medicitas.model.Paciente;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
@@ -11,14 +12,14 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.textfield.EmailField;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
-import com.vaadin.flow.data.binder.Binder;
 import jakarta.annotation.security.RolesAllowed;
 
 import java.time.LocalDate;
@@ -37,6 +38,7 @@ public class PacienteView extends VerticalLayout {
     private final DatePicker fechaNacimiento = new DatePicker("Fecha de nacimiento");
     private final TextField telefono = new TextField("Telefono");
     private final EmailField correo = new EmailField("Correo");
+    private final Checkbox activo = new Checkbox("Activo");
     private Paciente pacienteSeleccionado;
 
     public PacienteView(PacienteController pacienteController) {
@@ -44,7 +46,7 @@ public class PacienteView extends VerticalLayout {
         setSizeFull();
         configurarGrid();
         configurarFormulario();
-        binder.setBean(new Paciente());
+        binder.readBean(new Paciente());
         cargarPacientes();
     }
 
@@ -59,11 +61,7 @@ public class PacienteView extends VerticalLayout {
         grid.setSizeFull();
         grid.asSingleSelect().addValueChangeListener(event -> {
             pacienteSeleccionado = event.getValue();
-            if (pacienteSeleccionado == null) {
-                binder.setBean(new Paciente());
-            } else {
-                binder.setBean(pacienteSeleccionado);
-            }
+            binder.readBean(pacienteSeleccionado == null ? new Paciente() : copiar(pacienteSeleccionado));
         });
     }
 
@@ -82,9 +80,10 @@ public class PacienteView extends VerticalLayout {
                 .bind(Paciente::getTelefono, Paciente::setTelefono);
         binder.forField(correo)
                 .withValidator(valor -> valor == null || valor.isBlank() || valor.matches(
-                        "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"),   // error en esta linea 
+                        "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"),
                         "El correo no tiene un formato valido")
                 .bind(Paciente::getCorreo, Paciente::setCorreo);
+        binder.forField(activo).bind(Paciente::isActivo, Paciente::setActivo);
         correo.setErrorMessage("El correo no tiene un formato valido");
 
         Button guardar = new Button("Guardar", event -> guardar());
@@ -94,7 +93,7 @@ public class PacienteView extends VerticalLayout {
         eliminar.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
         FormLayout formulario = new FormLayout(documento, nombres, apellidos,
-                fechaNacimiento, telefono, correo);
+                fechaNacimiento, telefono, correo, activo);
         HorizontalLayout acciones = new HorizontalLayout(guardar, limpiar, eliminar);
         VerticalLayout panel = new VerticalLayout(new H2("Datos del paciente"), formulario, acciones);
         panel.setWidth("360px");
@@ -108,17 +107,16 @@ public class PacienteView extends VerticalLayout {
     }
 
     private void guardar() {
-        if (binder.validate().hasErrors()) {
-            notificar("Revisa los datos ingresados", true);
-            return;
-        }
-
         try {
-            Paciente formulario = binder.getBean();
+            Paciente datos = new Paciente();
+            if (!binder.writeBeanIfValid(datos)) {
+                notificar("Revisa los datos ingresados", true);
+                return;
+            }
             if (pacienteSeleccionado == null) {
-                pacienteController.guardar(formulario);
+                pacienteController.guardar(datos);
             } else {
-                pacienteController.actualizar(pacienteSeleccionado.getId(), formulario);
+                pacienteController.actualizar(pacienteSeleccionado.getId(), datos);
             }
             notificar("Paciente guardado correctamente", false);
             limpiarFormulario();
@@ -147,7 +145,20 @@ public class PacienteView extends VerticalLayout {
     private void limpiarFormulario() {
         pacienteSeleccionado = null;
         grid.asSingleSelect().clear();
-        binder.setBean(new Paciente());
+        binder.readBean(new Paciente());
+    }
+
+    private Paciente copiar(Paciente original) {
+        Paciente copia = new Paciente();
+        copia.setId(original.getId());
+        copia.setDocumento(original.getDocumento());
+        copia.setNombres(original.getNombres());
+        copia.setApellidos(original.getApellidos());
+        copia.setFechaNacimiento(original.getFechaNacimiento());
+        copia.setTelefono(original.getTelefono());
+        copia.setCorreo(original.getCorreo());
+        copia.setActivo(original.isActivo());
+        return copia;
     }
 
     private void cargarPacientes() {

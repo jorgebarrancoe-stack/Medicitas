@@ -23,6 +23,14 @@ public class PacienteController {
         return pacienteService.listar();
     }
 
+    public List<Paciente> listarActivos() {
+        return pacienteService.listarActivos();
+    }
+
+    public long contar() {
+        return pacienteService.contar();
+    }
+
     public Paciente actualizar(Long id, Paciente paciente) {
         return pacienteService.actualizar(id, paciente);
     }

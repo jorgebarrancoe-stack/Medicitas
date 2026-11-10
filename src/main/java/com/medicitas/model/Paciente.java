@@ -135,4 +135,16 @@ public class Paciente {
                 ", apellidos='" + apellidos + '\'' +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Paciente paciente)) return false;
+        return id != null && id.equals(paciente.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

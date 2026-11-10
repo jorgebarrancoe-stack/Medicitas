@@ -77,7 +77,11 @@ public class CitaMedicaView extends VerticalLayout {
         grid.setSizeFull();
         grid.asSingleSelect().addValueChangeListener(event -> {
             citaSeleccionada = event.getValue();
-            binder.setBean(citaSeleccionada == null ? nuevaCita() : citaSeleccionada);
+            if (citaSeleccionada == null) {
+                binder.readBean(nuevaCita());
+            } else {
+                binder.readBean(copiarCita(citaSeleccionada));
+            }
         });
     }
 
@@ -85,6 +89,7 @@ public class CitaMedicaView extends VerticalLayout {
         paciente.setItemLabelGenerator(this::nombrePaciente);
         medico.setItemLabelGenerator(this::nombreMedico);
         estado.setItems(EstadoCita.values());
+        fechaHora.setMin(LocalDateTime.now());
 
         binder.forField(fechaHora).asRequired("La fecha y hora son obligatorias")
                 .bind(CitaMedica::getFechaHora, CitaMedica::setFechaHora);
@@ -120,17 +125,16 @@ public class CitaMedicaView extends VerticalLayout {
     }
 
     private void guardar() {
-        if (binder.validate().hasErrors()) {
-            notificar("Revisa los datos ingresados", true);
-            return;
-        }
-
         try {
-            CitaMedica formulario = binder.getBean();
+            CitaMedica datos = new CitaMedica();
+            if (!binder.writeBeanIfValid(datos)) {
+                notificar("Revisa los datos ingresados", true);
+                return;
+            }
             if (citaSeleccionada == null) {
-                citaController.guardar(formulario);
+                citaController.guardar(datos);
             } else {
-                citaController.actualizar(citaSeleccionada.getId(), formulario);
+                citaController.actualizar(citaSeleccionada.getId(), datos);
             }
             notificar("Cita guardada correctamente", false);
             limpiarFormulario();
@@ -173,10 +177,10 @@ public class CitaMedicaView extends VerticalLayout {
     }
 
     private void cargarDatos() {
-        paciente.setItems(pacienteController.listar());
-        medico.setItems(medicoController.listar());
+        paciente.setItems(pacienteController.listarActivos());
+        medico.setItems(medicoController.listarActivos());
         cargarCitas();
-        binder.setBean(nuevaCita());
+        binder.readBean(nuevaCita());
     }
 
     private void cargarCitas() {
@@ -189,10 +193,22 @@ public class CitaMedicaView extends VerticalLayout {
         return cita;
     }
 
+    private CitaMedica copiarCita(CitaMedica original) {
+        CitaMedica copia = new CitaMedica();
+        copia.setId(original.getId());
+        copia.setIdTransaccion(original.getIdTransaccion());
+        copia.setFechaHora(original.getFechaHora());
+        copia.setMotivo(original.getMotivo());
+        copia.setEstado(original.getEstado());
+        copia.setPaciente(original.getPaciente());
+        copia.setMedico(original.getMedico());
+        return copia;
+    }
+
     private void limpiarFormulario() {
         citaSeleccionada = null;
         grid.asSingleSelect().clear();
-        binder.setBean(nuevaCita());
+        binder.readBean(nuevaCita());
     }
 
     private String nombrePaciente(Paciente paciente) {

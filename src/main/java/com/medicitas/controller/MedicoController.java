@@ -27,6 +27,14 @@ public class MedicoController {
         return medicoService.listar();
     }
 
+    public List<Medico> listarActivos() {
+        return medicoService.listarActivos();
+    }
+
+    public long contar() {
+        return medicoService.contar();
+    }
+
     public Medico actualizar(Long id, Medico medico) {
         return medicoService.actualizar(id, medico);
     }

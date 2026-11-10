@@ -66,6 +66,8 @@ reglas de disponibilidad e inactividad en las citas.
 ## Vistas disponibles
 
 - `/`: pagina principal.
+- `/login`: inicio de sesion.
 - `/pacientes`: CRUD de pacientes.
 - `/medicos`: CRUD de medicos.
 - `/citas`: CRUD y cancelacion de citas.
+- `/mi-agenda`: agenda del medico autenticado.

@@ -8,8 +8,11 @@ ON CONFLICT (documento) DO NOTHING;
 
 INSERT INTO medicos (numero_tarjeta_profesional, nombres, apellidos, especialidad, correo)
 VALUES
-    ('TP-001001', 'Laura', 'Gomez', 'Medicina general', 'laura.gomez@example.com'),
-    ('TP-002002', 'Andres', 'Perez', 'Pediatria', 'andres.perez@example.com')
+    ('TP-000001', 'Laura', 'Gomez', 'Odontologia general', 'laura.gomez@gooddentis.local'),
+    ('TP-000002', 'Andres', 'Perez', 'Ortodoncia', 'andres.perez@gooddentis.local'),
+    ('TP-000003', 'Valentina', 'Rojas', 'Periodoncia', 'valentina.rojas@gooddentis.local'),
+    ('TP-000004', 'Santiago', 'Torres', 'Endodoncia', 'santiago.torres@gooddentis.local'),
+    ('TP-000005', 'Camila', 'Moreno', 'Odontopediatria', 'camila.moreno@gooddentis.local')
 ON CONFLICT (numero_tarjeta_profesional) DO NOTHING;
 
 INSERT INTO citas_medicas (
@@ -23,7 +26,7 @@ SELECT
     paciente.id,
     medico.id
 FROM pacientes paciente
-JOIN medicos medico ON medico.numero_tarjeta_profesional = 'TP-001001'
+JOIN medicos medico ON medico.numero_tarjeta_profesional = 'TP-000001'
 WHERE paciente.documento = '1001001001'
   AND NOT EXISTS (
       SELECT 1

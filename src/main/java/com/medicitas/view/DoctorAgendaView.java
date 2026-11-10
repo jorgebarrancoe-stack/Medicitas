@@ -15,6 +15,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 
 @Route("mi-agenda")
 @PageTitle("Mi agenda | GoodDentis")
@@ -33,12 +34,16 @@ public class DoctorAgendaView extends VerticalLayout {
         Usuario usuario = usuarioRepository.findByUsername(username).orElseThrow();
 
         H2 titulo = new H2("Mi agenda");
-        Paragraph descripcion = new Paragraph("Citas asignadas a " + usuario.getNombre());
         Grid<CitaMedica> grid = crearGrid();
-        grid.setItems(citaController.listarPorMedico(usuario.getMedico().getId()));
-
-        add(new RouterLink("Volver al inicio", MainView.class), titulo, descripcion, grid);
-        expand(grid);
+        if (usuario.getMedico() == null) {
+            add(new RouterLink("Volver al inicio", MainView.class), titulo,
+                    new Paragraph("Tu usuario no esta asociado a un medico."));
+        } else {
+            Paragraph descripcion = new Paragraph("Citas asignadas a " + usuario.getNombre());
+            grid.setItems(citaController.listarPorMedico(usuario.getMedico().getId()));
+            add(new RouterLink("Volver al inicio", MainView.class), titulo, descripcion, grid);
+            expand(grid);
+        }
     }
 
     private Grid<CitaMedica> crearGrid() {

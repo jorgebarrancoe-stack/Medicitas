@@ -118,4 +118,16 @@ public class Medico {
                 ", especialidad='" + especialidad + '\'' +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Medico medico)) return false;
+        return id != null && id.equals(medico.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

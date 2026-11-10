@@ -4,21 +4,22 @@ import com.medicitas.controller.MedicoController;
 import com.medicitas.model.Medico;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
-import com.vaadin.flow.data.binder.Binder;
 import jakarta.annotation.security.RolesAllowed;
 
 @Route("medicos")
@@ -34,6 +35,7 @@ public class MedicoView extends VerticalLayout {
     private final TextField apellidos = new TextField("Apellidos");
     private final TextField especialidad = new TextField("Especialidad");
     private final EmailField correo = new EmailField("Correo");
+    private final Checkbox activo = new Checkbox("Activo");
     private final TextField username = new TextField("Usuario de acceso (nuevo)");
     private final PasswordField password = new PasswordField("Contrasena de acceso (nuevo)");
     private Medico medicoSeleccionado;
@@ -43,7 +45,7 @@ public class MedicoView extends VerticalLayout {
         setSizeFull();
         configurarGrid();
         configurarFormulario();
-        binder.setBean(new Medico());
+        binder.readBean(new Medico());
         cargarMedicos();
     }
 
@@ -60,7 +62,7 @@ public class MedicoView extends VerticalLayout {
             medicoSeleccionado = event.getValue();
             username.clear();
             password.clear();
-            binder.setBean(medicoSeleccionado == null ? new Medico() : medicoSeleccionado);
+            binder.readBean(medicoSeleccionado == null ? new Medico() : copiar(medicoSeleccionado));
         });
     }
 
@@ -74,6 +76,7 @@ public class MedicoView extends VerticalLayout {
         binder.forField(especialidad).asRequired("La especialidad es obligatoria")
                 .bind(Medico::getEspecialidad, Medico::setEspecialidad);
         binder.bind(correo, Medico::getCorreo, Medico::setCorreo);
+        binder.forField(activo).bind(Medico::isActivo, Medico::setActivo);
 
         Button guardar = new Button("Guardar", event -> guardar());
         guardar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -82,7 +85,7 @@ public class MedicoView extends VerticalLayout {
         eliminar.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
         FormLayout formulario = new FormLayout(numeroTarjetaProfesional, nombres, apellidos,
-                especialidad, correo, username, password);
+                especialidad, correo, activo, username, password);
         HorizontalLayout acciones = new HorizontalLayout(guardar, limpiar, eliminar);
         VerticalLayout panel = new VerticalLayout(new H2("Datos del medico"), formulario, acciones);
         panel.setWidth("360px");
@@ -96,21 +99,20 @@ public class MedicoView extends VerticalLayout {
     }
 
     private void guardar() {
-        if (binder.validate().hasErrors()) {
-            notificar("Revisa los datos ingresados", true);
-            return;
-        }
-
         try {
-            Medico formulario = binder.getBean();
+            Medico datos = new Medico();
+            if (!binder.writeBeanIfValid(datos)) {
+                notificar("Revisa los datos ingresados", true);
+                return;
+            }
             if (medicoSeleccionado == null) {
                 if (username.isEmpty() || password.isEmpty()) {
                     notificar("El usuario y la contrasena son obligatorios para un nuevo medico", true);
                     return;
                 }
-                medicoController.guardar(formulario, username.getValue(), password.getValue());
+                medicoController.guardar(datos, username.getValue(), password.getValue());
             } else {
-                medicoController.actualizar(medicoSeleccionado.getId(), formulario);
+                medicoController.actualizar(medicoSeleccionado.getId(), datos);
             }
             notificar("Medico guardado correctamente", false);
             limpiarFormulario();
@@ -141,7 +143,19 @@ public class MedicoView extends VerticalLayout {
         grid.asSingleSelect().clear();
         username.clear();
         password.clear();
-        binder.setBean(new Medico());
+        binder.readBean(new Medico());
+    }
+
+    private Medico copiar(Medico original) {
+        Medico copia = new Medico();
+        copia.setId(original.getId());
+        copia.setNumeroTarjetaProfesional(original.getNumeroTarjetaProfesional());
+        copia.setNombres(original.getNombres());
+        copia.setApellidos(original.getApellidos());
+        copia.setEspecialidad(original.getEspecialidad());
+        copia.setCorreo(original.getCorreo());
+        copia.setActivo(original.isActivo());
+        return copia;
     }
 
     private void cargarMedicos() {

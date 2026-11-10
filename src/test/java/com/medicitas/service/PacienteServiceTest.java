@@ -3,6 +3,7 @@ package com.medicitas.service;
 import com.medicitas.exception.ReglaNegocioException;
 import com.medicitas.exception.RecursoNoEncontradoException;
 import com.medicitas.model.Paciente;
+import com.medicitas.repository.CitaMedicaRepository;
 import com.medicitas.repository.PacienteRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,9 @@ class PacienteServiceTest {
 
     @Mock
     private PacienteRepository pacienteRepository;
+
+    @Mock
+    private CitaMedicaRepository citaMedicaRepository;
 
     @InjectMocks
     private PacienteService pacienteService;

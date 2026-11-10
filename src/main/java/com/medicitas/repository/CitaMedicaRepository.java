@@ -16,11 +16,23 @@ public interface CitaMedicaRepository extends JpaRepository<CitaMedica, Long> {
     @EntityGraph(attributePaths = {"paciente", "medico"})
     List<CitaMedica> findAll();
 
-    boolean existsByMedicoIdAndFechaHoraAndEstadoIn(Long medicoId,
-                                                     LocalDateTime fechaHora,
-                                                     Collection<EstadoCita> estados);
+    @EntityGraph(attributePaths = {"paciente", "medico"})
+    List<CitaMedica> findByMedicoIdAndFechaHoraBetweenAndEstadoIn(Long medicoId,
+                                                                  LocalDateTime desde,
+                                                                  LocalDateTime hasta,
+                                                                  Collection<EstadoCita> estados);
+
+    @EntityGraph(attributePaths = {"paciente", "medico"})
+    List<CitaMedica> findByPacienteIdAndFechaHoraBetweenAndEstadoIn(Long pacienteId,
+                                                                    LocalDateTime desde,
+                                                                    LocalDateTime hasta,
+                                                                    Collection<EstadoCita> estados);
 
     boolean existsByIdTransaccion(UUID idTransaccion);
+
+    boolean existsByPacienteId(Long pacienteId);
+
+    boolean existsByMedicoId(Long medicoId);
 
     @EntityGraph(attributePaths = {"paciente", "medico"})
     List<CitaMedica> findByPacienteIdOrderByFechaHoraDesc(Long pacienteId);

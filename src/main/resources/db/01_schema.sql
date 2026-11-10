@@ -53,3 +53,17 @@ CREATE INDEX IF NOT EXISTS idx_citas_medico
 
 CREATE INDEX IF NOT EXISTS idx_citas_fecha_hora
     ON citas_medicas (fecha_hora);
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(60) NOT NULL UNIQUE,
+    password VARCHAR(120) NOT NULL,
+    nombre VARCHAR(120) NOT NULL,
+    rol VARCHAR(20) NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    medico_id BIGINT UNIQUE,
+    CONSTRAINT usuarios_rol_valido
+        CHECK (rol IN ('ADMIN', 'DOCTOR')),
+    CONSTRAINT usuarios_medico_fk
+        FOREIGN KEY (medico_id) REFERENCES medicos (id)
+);
