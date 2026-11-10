@@ -54,14 +54,22 @@ public class InitialDataConfig {
                                PasswordEncoder passwordEncoder,
                                String password) {
         List<DoctorInicial> doctores = List.of(
-                new DoctorInicial("doctor1", "Laura", "Gomez", "Odontologia general", "TP-000001"),
-                new DoctorInicial("doctor2", "Andres", "Perez", "Ortodoncia", "TP-000002"),
-                new DoctorInicial("doctor3", "Valentina", "Rojas", "Periodoncia", "TP-000003"),
-                new DoctorInicial("doctor4", "Santiago", "Torres", "Endodoncia", "TP-000004"),
-                new DoctorInicial("doctor5", "Camila", "Moreno", "Odontopediatria", "TP-000005"));
+                new DoctorInicial("laura.gomez", "doctor1", "Laura", "Gomez", "Odontologia general", "TP-000001"),
+                new DoctorInicial("andres.perez", "doctor2", "Andres", "Perez", "Ortodoncia", "TP-000002"),
+                new DoctorInicial("valentina.rojas", "doctor3", "Valentina", "Rojas", "Periodoncia", "TP-000003"),
+                new DoctorInicial("santiago.torres", "doctor4", "Santiago", "Torres", "Endodoncia", "TP-000004"),
+                new DoctorInicial("camila.moreno", "doctor5", "Camila", "Moreno", "Odontopediatria", "TP-000005"));
 
         for (DoctorInicial inicial : doctores) {
-            if (usuarioRepository.existsByUsername(inicial.username())) {
+            Usuario usuarioExistente = usuarioRepository.findByUsername(inicial.username())
+                    .orElseGet(() -> usuarioRepository.findByUsername(inicial.usuarioAnterior()).orElse(null));
+            if (usuarioExistente != null) {
+                if (usuarioExistente.getUsername().equals(inicial.usuarioAnterior())) {
+                    usuarioExistente.setUsername(inicial.username());
+                    usuarioExistente.setNombre("Dr. " + inicial.nombres() + " " + inicial.apellidos());
+                    usuarioRepository.save(usuarioExistente);
+                    LOGGER.info("Usuario de doctor actualizado: {}", inicial.username());
+                }
                 continue;
             }
 
@@ -81,7 +89,8 @@ public class InitialDataConfig {
         LOGGER.info("Usuarios iniciales de doctores verificados");
     }
 
-    private record DoctorInicial(String username, String nombres, String apellidos,
+    private record DoctorInicial(String username, String usuarioAnterior,
+                                 String nombres, String apellidos,
                                  String especialidad, String tarjeta) {
     }
 }

@@ -45,7 +45,8 @@ la base de datos oficial del proyecto.
 Al iniciar por primera vez se crean los siguientes usuarios de demostracion:
 
 - Recepcion: usuario `recepcion`, contrasena `recepcion123`.
-- Doctores: usuarios `doctor1` a `doctor5`, contrasena `doctor123`.
+- Doctores: usuarios `laura.gomez`, `andres.perez`, `valentina.rojas`,
+  `santiago.torres` y `camila.moreno`, contrasena `doctor123`.
 
 Las contrasenas iniciales pueden cambiarse con `ADMIN_INITIAL_PASSWORD` y
 `DOCTOR_INITIAL_PASSWORD`. No deben compartirse ni utilizarse en produccion.
