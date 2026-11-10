@@ -1,6 +1,6 @@
-# Medicitas
+# GoodDentis
 
-Sistema de gestión de citas médicas desarrollado con Spring Boot, Vaadin,
+Sistema de gestión de citas odontologicas desarrollado con Spring Boot, Vaadin,
 Spring Data JPA y PostgreSQL.
 
 ## Requisitos

@@ -64,7 +64,7 @@ public class MainView extends VerticalLayout {
                 .set("color", "white")
                 .set("font-size", "24px")
                 .set("font-weight", "700");
-        Span nombre = new Span("Medicitas");
+        Span nombre = new Span("GoodDentis");
         nombre.getStyle().set("font-size", "20px").set("font-weight", "800");
         marca.add(simbolo, nombre);
 

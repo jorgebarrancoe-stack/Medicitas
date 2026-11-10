@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Route("citas")
-@PageTitle("Citas medicas | Medicitas")
+@PageTitle("Citas medicas | GoodDentis")
 public class CitaMedicaView extends VerticalLayout {
 
     private static final DateTimeFormatter FORMATO_FECHA_HORA =

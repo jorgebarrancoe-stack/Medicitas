@@ -23,7 +23,7 @@ import com.vaadin.flow.data.binder.Binder;
 import java.time.LocalDate;
 
 @Route("pacientes")
-@PageTitle("Pacientes | Medicitas")
+@PageTitle("Pacientes | GoodDentis")
 public class PacienteView extends VerticalLayout {
 
     private final PacienteController pacienteController;

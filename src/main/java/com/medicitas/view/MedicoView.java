@@ -20,7 +20,7 @@ import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.data.binder.Binder;
 
 @Route("medicos")
-@PageTitle("Medicos | Medicitas")
+@PageTitle("Medicos | GoodDentis")
 public class MedicoView extends VerticalLayout {
 
     private final MedicoController medicoController;

@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
 
     private ProblemDetail problema(HttpStatus estado, String detalle) {
         ProblemDetail problema = ProblemDetail.forStatusAndDetail(estado, detalle);
-        problema.setTitle("Error en Medicitas");
+        problema.setTitle("Error en GoodDentis");
         return problema;
     }
 }

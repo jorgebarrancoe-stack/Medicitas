@@ -1,4 +1,4 @@
--- Datos iniciales para pruebas de Medicitas.
+-- Datos iniciales para pruebas de GoodDentis.
 
 INSERT INTO pacientes (documento, nombres, apellidos, fecha_nacimiento, telefono, correo)
 VALUES

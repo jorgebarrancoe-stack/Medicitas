@@ -1,4 +1,4 @@
--- Estructura de la base de datos Medicitas.
+-- Estructura de la base de datos GoodDentis.
 -- Ejecutar sobre la base de datos medicitas.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
