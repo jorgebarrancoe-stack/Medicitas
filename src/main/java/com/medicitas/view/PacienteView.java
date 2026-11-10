@@ -19,11 +19,13 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.data.binder.Binder;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.time.LocalDate;
 
 @Route("pacientes")
 @PageTitle("Pacientes | GoodDentis")
+@RolesAllowed("ADMIN")
 public class PacienteView extends VerticalLayout {
 
     private final PacienteController pacienteController;

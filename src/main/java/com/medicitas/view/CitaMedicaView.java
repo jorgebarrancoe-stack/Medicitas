@@ -24,12 +24,14 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Route("citas")
 @PageTitle("Citas medicas | GoodDentis")
+@RolesAllowed("ADMIN")
 public class CitaMedicaView extends VerticalLayout {
 
     private static final DateTimeFormatter FORMATO_FECHA_HORA =

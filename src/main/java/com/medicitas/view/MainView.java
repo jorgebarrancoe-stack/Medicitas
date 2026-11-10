@@ -15,8 +15,12 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.PermitAll;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Route("")
+@PermitAll
 public class MainView extends VerticalLayout {
 
     private final PacienteController pacienteController;
@@ -47,6 +51,8 @@ public class MainView extends VerticalLayout {
                 .set("display", "flex")
                 .set("align-items", "center")
                 .set("justify-content", "space-between")
+                .set("flex-wrap", "wrap")
+                .set("gap", "16px")
                 .set("padding", "18px 6vw")
                 .set("background", "#ffffff")
                 .set("border-bottom", "1px solid #e7ebf2");
@@ -64,13 +70,20 @@ public class MainView extends VerticalLayout {
                 .set("color", "white")
                 .set("font-size", "24px")
                 .set("font-weight", "700");
+        Div identidad = new Div();
+        identidad.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "2px");
         Span nombre = new Span("GoodDentis");
-        nombre.getStyle().set("font-size", "20px").set("font-weight", "800");
-        marca.add(simbolo, nombre);
+        nombre.getStyle().set("font-size", "20px").set("font-weight", "800").set("line-height", "1");
+        Span subtitulo = new Span("Cuidado dental organizado");
+        subtitulo.getStyle().set("font-size", "11px").set("color", "#768397");
+        identidad.add(nombre, subtitulo);
+        marca.add(simbolo, identidad);
 
-        Button citas = new Button("Ver agenda", VaadinIcon.CALENDAR.create(),
-                event -> UI.getCurrent().navigate(CitaMedicaView.class));
+        boolean doctor = esDoctor();
+        Button citas = new Button(doctor ? "Mi agenda" : "Agendar cita", VaadinIcon.CALENDAR.create(),
+                event -> UI.getCurrent().navigate(doctor ? "mi-agenda" : "citas"));
         citas.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        citas.getStyle().set("white-space", "nowrap").set("font-weight", "700");
         barra.add(marca, citas);
         return barra;
     }
@@ -90,9 +103,9 @@ public class MainView extends VerticalLayout {
                 .set("gap", "30px")
                 .set("padding", "38px 42px")
                 .set("border-radius", "24px")
-                .set("background", "linear-gradient(120deg, #12253d 0%, #176c70 100%)")
-                .set("color", "white")
-                .set("box-shadow", "0 18px 42px rgba(18, 37, 61, .18)");
+                .set("background", "linear-gradient(120deg, #e8f7f4 0%, #e1f1f7 58%, #fff5e6 100%)")
+                .set("color", "#173b4d")
+                .set("box-shadow", "0 18px 42px rgba(54, 112, 126, .12)");
 
         Div heroTexto = new Div();
         Span etiqueta = new Span("CENTRO DE CONTROL");
@@ -100,16 +113,16 @@ public class MainView extends VerticalLayout {
                 .set("font-size", "11px")
                 .set("font-weight", "800")
                 .set("letter-spacing", "2px")
-                .set("color", "#80e1d6");
+                .set("color", "#0e8f88");
         H1 titulo = new H1("Una atencion mas clara empieza aqui");
         titulo.getStyle().set("max-width", "560px").set("margin", "12px 0 8px").set("font-size", "clamp(28px, 4vw, 48px)");
         Paragraph descripcion = new Paragraph("Organiza pacientes, profesionales y citas desde un solo lugar.");
-        descripcion.getStyle().set("margin", "0").set("color", "#d8e8ed").set("font-size", "16px");
+        descripcion.getStyle().set("margin", "0").set("color", "#496576").set("font-size", "16px");
         heroTexto.add(etiqueta, titulo, descripcion);
 
         Button registrar = new Button("Registrar paciente", VaadinIcon.USER.create(),
                 event -> UI.getCurrent().navigate(PacienteView.class));
-        registrar.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+        registrar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         registrar.getStyle().set("font-weight", "700");
         hero.add(heroTexto, registrar);
 
@@ -128,7 +141,10 @@ public class MainView extends VerticalLayout {
 
         H2 accionesTitulo = new H2("Acciones rapidas");
         accionesTitulo.getStyle().set("margin", "34px 0 14px").set("font-size", "22px");
-        HorizontalLayout acciones = new HorizontalLayout(
+        HorizontalLayout acciones = esDoctor()
+                ? new HorizontalLayout(crearAccion("Mi agenda", "Consulta tus citas asignadas",
+                VaadinIcon.CALENDAR, DoctorAgendaView.class))
+                : new HorizontalLayout(
                 crearAccion("Gestionar pacientes", "Registra y actualiza informacion", VaadinIcon.USER,
                         PacienteView.class),
                 crearAccion("Gestionar medicos", "Administra especialidades", VaadinIcon.STETHOSCOPE,
@@ -194,6 +210,12 @@ public class MainView extends VerticalLayout {
                 .set("border-radius", "16px")
                 .set("background", "white");
         return accion;
+    }
+
+    private boolean esDoctor() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
     }
 
 }

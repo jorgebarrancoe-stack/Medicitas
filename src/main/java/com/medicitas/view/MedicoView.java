@@ -18,9 +18,11 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.data.binder.Binder;
+import jakarta.annotation.security.RolesAllowed;
 
 @Route("medicos")
 @PageTitle("Medicos | GoodDentis")
+@RolesAllowed("ADMIN")
 public class MedicoView extends VerticalLayout {
 
     private final MedicoController medicoController;
